@@ -7,33 +7,49 @@
 using namespace Wordle;
 
 Solver::Solver(std::string guessListPath, std::string solutionListPath) {
-  bestGuess = "aahed";
+  importWordList(guessListPath, guessList);
+  importWordList(solutionListPath, solutionList);
   
-  std::cout << importWordList(guessListPath, guessList);
-  std::cout << importWordList(solutionListPath, solutionList);
-  std::cout << std::endl;
-
   indexLetters(solutionList, letterIndex);
+
+  bestGuess[0] = "tares";
+  best[0] = solutionList.size();
 }
 
-Solver::~Solver() {
-
-}
+Solver::~Solver() {}
 
 std::string Solver::getBestGuess() {
-  return guessList[100];
+  return bestGuess[0];
 }
 
 void Solver::setGuess(std::string word, int colours[SIZE]) {
-  // std::cout << word << " !!! " << checkWord(word, word, colours) << std::endl;
-  // std::cout << word << std::endl;
-  // std::cout << possibleSolutions(word, colours).size() << std::endl;
-  std::cout << word << " --- " << averageSolutions(word) << std::endl;
+  double tmp;
 
-  // for (auto w : guessList) {
-  //   if (averageSolutions(w) != 14855)
-  //     std::cout << w << std::endl;
-  // }
+  solutionList = possibleSolutions(word, colours);
+  indexLetters(solutionList, letterIndex);
+
+  for (auto w : guessList) {
+    if (best[0] != 0) {
+      tmp = averageSolutions(w);
+
+      for (int i = 0; i < 5; i++) {
+        if (tmp < best[i]) {
+          for (int j = 4; j > i; j--) {
+            best[j] = best[j - 1];
+            bestGuess[j] = bestGuess[j - 1];
+          }
+
+          best[i] = tmp;
+          bestGuess[i] = w;
+          i = 5;
+        }
+      }
+    }
+  }
+
+  for (int i = 0; i < SIZE; i++) {
+    std::cout << bestGuess[i] << " --- " << best[i] << std::endl;
+  }
 }
 
 int Solver::importWordList(std::string filepath, std::vector<std::string>& list) {
@@ -68,24 +84,24 @@ int Solver::importWordList(std::string filepath, std::vector<std::string>& list)
 }
 
 void Solver::indexLetters(const std::vector<std::string>& list, std::vector<int> letterIndex[SIZE][26]) {
+  for (int i = 0; i < SIZE; i++)
+    for (int j = 0; j < 26; j++)
+      letterIndex[i][j].clear();
+
   for (int i = 0; i < list.size(); i++)
     for (int y = 0; y < SIZE; y++)
       letterIndex[y][list[i][y] - 97].emplace_back(i);
 }
 
-bool Solver::checkWord(std::string checkWord, std::string guessWord, int colours[SIZE]) {
-  // std::cout << guessWord << " <- check word -> " << checkWord << " --- " << colours[0] << colours[1] << colours[2] << colours[3] << colours[4];
-  
+bool Solver::checkWord(std::string checkWord, std::string guessWord, int colours[SIZE]) {  
   bool used[SIZE];
-  bool found;
-
   for (int i = 0; i < SIZE; i ++)
     used[i] = false;
+  bool found;
 
   for (int i = 0; i < SIZE; i++) {
     if (colours[i] == YELLOW) {
       if (checkWord[i] == guessWord[i]) {
-        // std::cout << std::endl;
         return false;
       }
 
@@ -99,7 +115,6 @@ bool Solver::checkWord(std::string checkWord, std::string guessWord, int colours
       }
 
       if (!found) {
-        // std::cout << std::endl;
         return false;
       }
     }
@@ -109,14 +124,12 @@ bool Solver::checkWord(std::string checkWord, std::string guessWord, int colours
     if (colours[i] == GREY) {
       for (int j = 0; j < SIZE; j++) {
         if (!used[j] && colours[j] != GREEN && checkWord[j] == guessWord[i]) {
-          // std::cout << std::endl;
           return false;
         }
       }
     }
   }
 
-  // std::cout << " true" << std::endl;
   return true;
 }
 
@@ -134,13 +147,12 @@ std::vector<std::string> Solver::possibleSolutions(std::string word, int colours
 
     for (int i = 0; i < SIZE; i++) {
       if (colours[i] == GREEN) {
-        while (letterIndex[i][word[i] - 97][index[i]] < largest) {
-          if (index[i] < letterIndex[i][word[i] - 97].size() - 1) {
-            index[i]++;
-          } else {
-            return solutions;
-          }
+        while (index[i] < letterIndex[i][word[i] - 97].size() && letterIndex[i][word[i] - 97][index[i]] < largest) {
+          index[i]++;
         }
+
+        if (!(index[i] < letterIndex[i][word[i] - 97].size()))
+          return solutions;
 
         if (letterIndex[i][word[i] - 97][index[i]] > largest) {
           largest = letterIndex[i][word[i] - 97][index[i]];
@@ -166,57 +178,49 @@ std::vector<std::string> Solver::possibleSolutions(std::string word, int colours
 double Solver::averageSolutions(std::string word) {
   std::vector<int> results;
   int colours[SIZE];
-  bool skip;
+  int sum;
+  double ret = 0;
+  bool skip = false;
 
   for (int i = 0; i < SIZE; i++) {
     colours[i] = GREY;
   }
 
-  std::vector<std::string> copyList; 
-
   while (colours[SIZE - 1] < 3) {
-    skip = false;
+    if (!skip) {
+      ret = possibleSolutions(word, colours).size();
+      if (ret > 0)
+        results.emplace_back(ret);
+    }
 
-    for (int i = 0; i < SIZE; i++) {
-      if (colours[i] == YELLOW) {
-        for (int j = 0; j < i; j++) {
-          if (colours[j] == GREY && word[j] == word[i])
+    skip = false;
+    sum = 0;
+    colours[0]++;
+
+    for (int k = 0; k < SIZE; k++) {
+      if (colours[k] == 3 && k < SIZE - 1) {
+        colours[k] = 0;
+        colours[k + 1]++;
+      } else if (colours[k] == YELLOW) {
+        for (int j = 0; j < k; j++) {
+          if (colours[j] == GREY && word[j] == word[k])
             skip = true;
         }
       }
+
+      sum += colours[k];
     }
 
-    if (!skip) {
-      std::vector<std::string> res = possibleSolutions(word, colours);
-
-      for (auto w : res) {
-        for (int i = 0; i < copyList.size(); i++) {
-          if (copyList[i] == w)
-            std::cout << "----------- Duplicate " << w << " -----------" << std::endl;
-        }
-
-        copyList.emplace_back(w);
-      }
-
-      results.emplace_back(res.size());
-    }
-
-    colours[0]++;
-
-    for (int k = 0; k < SIZE - 1; k++) {
-      if (colours[k] == 3) {
-        colours[k] = 0;
-        colours[k + 1]++;
-      } else {
-        k = SIZE;
-      }
-    }
+    if (sum == 9)
+      skip = true;
   }
 
-  double sum = 0;
-
+  if (ret == 1)
+    ret = 0 - (((double)ret) / results.size());
+  else
+    ret = 0;
   for (int i : results) 
-    sum += i;
+    ret += ((double)i) / results.size();
 
-  return sum;
+  return ret;
 }
