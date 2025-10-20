@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
     bool exit = false;
 
     auto start = std::chrono::system_clock::now();
-    Wordle::Solver test("../data/WordList.txt", "../data/shuffled_real_wordles.txt");
+    Wordle::Solver solver("../data/combined_wordlist.txt", "../data/shuffled_real_wordles.txt");
     auto end = std::chrono::system_clock::now();
 
     std::cout << "constructor time: " << ((std::chrono::duration<double>)(end - start)).count() << "s" << std::endl;
@@ -18,9 +18,11 @@ int main(int argc, char** argv) {
     std::string word;
     std::string colourInput;
 
+    std::cout << "Best Starting Guess --- " << solver.getBestGuess() << std::endl;
+    
     while (!exit) {
         std::cout << "Guess:   ";
-        std::cin >> word;
+        std::cin >> word;   
         if (word == "x")
             return 0;
         std::cout << "Colours: ";
@@ -40,7 +42,7 @@ int main(int argc, char** argv) {
             }
 
             start = std::chrono::system_clock::now();
-            test.setGuess(word, colours);
+            solver.setGuess(word, colours);
             end = std::chrono::system_clock::now();
 
             std::cout << "time: " << ((std::chrono::duration<double>)(end - start)).count() << "s" << std::endl;

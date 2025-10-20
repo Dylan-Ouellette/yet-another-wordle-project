@@ -2,12 +2,12 @@
   #define SOLVER_H
 
 #include <string>
-#include <thread>
 #include <vector>
 
 namespace Wordle {
 
 const int SIZE = 5;
+const int THREADS = 4;
 const int GREY = 0;
 const int YELLOW = 1;
 const int GREEN = 2;

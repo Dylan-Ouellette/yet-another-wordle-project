@@ -1,8 +1,11 @@
 
 #include "Solver.h"
 
+#include <chrono>
 #include <fstream>
+#include <future>
 #include <iostream>
+#include <thread>
 
 using namespace Wordle;
 
@@ -12,7 +15,12 @@ Solver::Solver(std::string guessListPath, std::string solutionListPath) {
   
   indexLetters(solutionList, letterIndex);
 
-  bestGuess[0] = "tares";
+  bestGuess[0] = "trace";
+  bestGuess[1] = "crate";
+  bestGuess[2] = "salet";
+  bestGuess[3] = "slate";
+  bestGuess[4] = "tarse";
+
   best[0] = solutionList.size();
 }
 
@@ -23,27 +31,61 @@ std::string Solver::getBestGuess() {
 }
 
 void Solver::setGuess(std::string word, int colours[SIZE]) {
-  double tmp;
+  std::cout << "Average outcome = " << averageSolutions(word) << std::endl;
 
   solutionList = possibleSolutions(word, colours);
   indexLetters(solutionList, letterIndex);
 
-  for (auto w : guessList) {
-    if (best[0] != 0) {
-      tmp = averageSolutions(w);
+  std::cout << "Number of possible solutions = " << solutionList.size() << std::endl;
 
-      for (int i = 0; i < 5; i++) {
-        if (tmp < best[i]) {
-          for (int j = 4; j > i; j--) {
-            best[j] = best[j - 1];
-            bestGuess[j] = bestGuess[j - 1];
+  using namespace std::chrono_literals;
+
+  std::vector<std::future<double>> threadFutures;
+  std::vector<std::string> threadWords;
+  auto numThreads = std::thread::hardware_concurrency();
+  double ret;
+
+  if (numThreads) {
+    std::cout << "Hardware Concurrency = " << std::thread::hardware_concurrency() << std::endl;
+  } else {
+    numThreads = THREADS;
+  }
+
+  numThreads = numThreads * 4;
+
+  auto nextWord = guessList.begin();
+  while (nextWord != guessList.end()) {
+    while (threadFutures.size() < numThreads && nextWord != guessList.end()) {
+      threadFutures.emplace_back(std::async(std::launch::async, &Solver::averageSolutions, this, *nextWord.base()));
+      threadWords.emplace_back(*nextWord.base());
+      nextWord++;
+    }
+
+    auto w = threadWords.begin();
+    for (auto i = threadFutures.begin(); i != threadFutures.end(); i++) {
+      if (i.base()->wait_for(0ms) == std::future_status::ready) {
+        ret = i.base()->get();
+
+        for (int k = 0; k < 5; k++) {
+          if (ret < best[k] || (ret == best[k] && *w.base() < bestGuess[k])) {
+            for (int j = 4; j > k; j--) {
+              best[j] = best[j - 1];
+              bestGuess[j] = bestGuess[j - 1];
+            }
+
+            best[k] = ret;
+            bestGuess[k] = *w.base();
+            k = 5;
           }
-
-          best[i] = tmp;
-          bestGuess[i] = w;
-          i = 5;
         }
+        
+        w = threadWords.erase(w);
+        w--;
+        i = threadFutures.erase(i);
+        i--;
       }
+
+      w++;
     }
   }
 
