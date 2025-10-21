@@ -54,7 +54,7 @@ void Solver::setGuess(std::string word, int colours[SIZE]) {
   numThreads = numThreads * 4;
 
   auto nextWord = guessList.begin();
-  while (nextWord != guessList.end()) {
+  while (nextWord != guessList.end() || threadFutures.size() > 0) {
     while (threadFutures.size() < numThreads && nextWord != guessList.end()) {
       threadFutures.emplace_back(std::async(std::launch::async, &Solver::averageSolutions, this, *nextWord.base()));
       threadWords.emplace_back(*nextWord.base());
@@ -62,7 +62,7 @@ void Solver::setGuess(std::string word, int colours[SIZE]) {
     }
 
     auto w = threadWords.begin();
-    for (auto i = threadFutures.begin(); i != threadFutures.end(); i++) {
+    for (auto i = threadFutures.begin(); i != threadFutures.end(); ) {
       if (i.base()->wait_for(0ms) == std::future_status::ready) {
         ret = i.base()->get();
 
@@ -80,12 +80,11 @@ void Solver::setGuess(std::string word, int colours[SIZE]) {
         }
         
         w = threadWords.erase(w);
-        w--;
         i = threadFutures.erase(i);
-        i--;
+      } else {
+        w++;
+        i++;
       }
-
-      w++;
     }
   }
 
