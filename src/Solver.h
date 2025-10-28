@@ -1,42 +1,57 @@
 #ifndef SOLVER_H
   #define SOLVER_H
 
+#include "Guess.h"
+
 #include <string>
 #include <vector>
 
 namespace Wordle {
 
-const int SIZE = 5;
-const int THREADS = 4;
-const int GREY = 0;
-const int YELLOW = 1;
-const int GREEN = 2;
+constexpr int SIZE = 5;
+constexpr int THREADS = 4;
+
+enum LetterColour : int {
+  GREY = 0,
+  YELLOW = 1,
+  GREEN = 2,
+};
+
+inline LetterColour& operator++(LetterColour& colour) {
+  colour = static_cast<LetterColour>(colour + 1);
+  return colour;
+}
+
+inline LetterColour operator++(LetterColour& colour, int) {
+  LetterColour temp = colour;
+  ++colour;
+  return temp;
+}
+
 
 class Solver {
 
 private:
-  std::string bestGuess[SIZE];
-  double best[SIZE];
+  Guess bestGuesses[SIZE];
   
   std::vector<std::string> guessList;
   std::vector<std::string> solutionList;
   std::vector<int> letterIndex[SIZE][26];
 
-  static int importWordList(std::string filepath, std::vector<std::string>& list);
-  static void indexLetters(const std::vector<std::string>& list, std::vector<int> letterIndex[SIZE][26]);
-
-  bool checkWord(std::string checkWord, std::string guessWord, int colours[SIZE]);
-  std::vector<std::string> possibleSolutions(std::string word, int colours[SIZE]);
-  double averageSolutions(std::string word);
+  std::vector<std::string> possibleSolutions(const std::string& word, LetterColour colours[SIZE]);
+  Guess averageSolutions(const std::string& word);
 
 public:
-  Solver(std::string guessListPath, std::string solutionListPath);
-  ~Solver();
+  Solver(const std::string& guessListPath, const std::string& solutionListPath);
+  Solver(const std::vector<std::string>& newGuessList, const std::vector<std::string>& newSolutionList);
 
-  std::string getBestGuess();
-  void setGuess(std::string word, int colours[SIZE]);
-};
+  Guess getBestGuess(int index = 0);
+  void setGuess(const std::string& word, LetterColour colours[SIZE]);
 
-}
+  const std::vector<std::string>& getPossibleSolutions();
+  const std::vector<std::string>& getGuessWords();
+}; // Solver
 
-#endif
+} // Wordle
+
+#endif // SOLVER_H
