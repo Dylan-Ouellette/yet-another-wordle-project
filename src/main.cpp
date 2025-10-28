@@ -45,9 +45,16 @@ int main(int argc, char** argv) {
       solver.setGuess(word, colours);
       end = std::chrono::system_clock::now();
 
+      auto solutions = solver.getPossibleSolutions();
+
       std::cout << std::endl;
       std::cout << "Time: " << ((std::chrono::duration<double>)(end - start)).count() << "s" << std::endl;
-      std::cout << "Number of Possible Solutions: " << solver.getPossibleSolutions().size() << std::endl;
+      std::cout << "Number of Possible Solutions: " << solutions.size() << std::endl;
+      if (solutions.size() < 10) {
+        for (auto w : solutions) {
+          std::cout << w << std::endl;
+        }
+      }
       std::cout << "Best Guesses:" << std::endl;
       for (int i = 0; i < 5; i++) {
         std::cout << solver.getBestGuess(i).getWord() << " - " << solver.getBestGuess(i).getAverageResult() << std::endl;
