@@ -177,9 +177,6 @@ void Solver::setGuess(const std::string& word, LetterColour colours[SIZE]) {
 }
 
 
-
-
-
 std::vector<std::string> Solver::possibleSolutions(const std::string& word, LetterColour colours[SIZE]) {
   std::vector<std::string> solutions;
   int largest = 0;
