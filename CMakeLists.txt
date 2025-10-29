@@ -12,6 +12,7 @@ link_libraries(pthread)
 add_executable(yet-another-wordle-project.exe
   src/main.cpp
   src/Solver.cpp
+  src/LetterColour.cpp
 )
 
 target_compile_options(yet-another-wordle-project.exe

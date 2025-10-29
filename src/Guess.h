@@ -1,5 +1,5 @@
 #ifndef GUESS_H
-  #define GUESS_H
+  #define GUESS_H 
 
 #include <string>
 #include <tuple>

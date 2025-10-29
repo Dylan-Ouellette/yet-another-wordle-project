@@ -10,6 +10,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(solver-test
   ../src/Solver.cpp
+  ../src/LetterColour.cpp
   Solver_Test.cpp
 )
 

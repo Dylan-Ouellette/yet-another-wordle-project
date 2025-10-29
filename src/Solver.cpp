@@ -45,47 +45,6 @@ void indexLetters(const std::vector<std::string>& list, std::vector<size_t> lett
 }
 
 
-bool checkWord(const std::string& word, const std::string& guessWord, LetterColour colours[SIZE]) {  
-  bool used[SIZE];
-  for (int i = 0; i < SIZE; i ++)
-    used[i] = false;
-  bool found;
-
-  for (int i = 0; i < SIZE; i++) {
-    if (colours[i] == YELLOW) {
-      if (word[i] == guessWord[i]) {
-        return false;
-      }
-
-      found = false;
-
-      for (int j = 0; !found && j < SIZE; j++) {
-        if (!used[j] && word[j] == guessWord[i] && word[j] != guessWord[j]) {
-          used[j] = true;
-          found = true;
-        }
-      }
-
-      if (!found) {
-        return false;
-      }
-    }
-  }
-
-  for (int i = 0; i < SIZE; i++) {
-    if (colours[i] == GREY) {
-      for (int j = 0; j < SIZE; j++) {
-        if (!used[j] && colours[j] != GREEN && word[j] == guessWord[i]) {
-          return false;
-        }
-      }
-    }
-  }
-
-  return true;
-}
-
-
 Solver::Solver(const std::string& guessListPath, const std::string& solutionListPath) {
   importWordList(guessListPath, guessList);
   importWordList(solutionListPath, solutionList);
@@ -129,11 +88,9 @@ Guess Solver::getBestGuess(int index) {
 }
 
 
-void Solver::setGuess(const std::string& word, LetterColour colours[SIZE]) {
-  solutionList = possibleSolutions(word, colours);
+void Solver::setGuess(const LetterColour& colours) {
+  solutionList = possibleSolutions(colours);
   indexLetters(solutionList, letterIndex);
-
-  using namespace std::chrono_literals;
 
   std::vector<std::future<Guess>> threadFutures;
   auto numThreads = std::thread::hardware_concurrency();
@@ -144,6 +101,8 @@ void Solver::setGuess(const std::string& word, LetterColour colours[SIZE]) {
   }
 
   numThreads = numThreads * 4;
+
+  using namespace std::chrono_literals;
 
   auto nextWord = guessList.begin();
   while (nextWord != guessList.end() || threadFutures.size() > 0) {
@@ -177,7 +136,7 @@ void Solver::setGuess(const std::string& word, LetterColour colours[SIZE]) {
 }
 
 
-std::vector<std::string> Solver::possibleSolutions(const std::string& word, LetterColour colours[SIZE]) {
+std::vector<std::string> Solver::possibleSolutions(const LetterColour& colours) {
   std::vector<std::string> solutions;
   size_t largest = 0;
   bool allLargest;
@@ -191,22 +150,22 @@ std::vector<std::string> Solver::possibleSolutions(const std::string& word, Lett
 
     for (int i = 0; i < SIZE; i++) {
       if (colours[i] == GREEN) {
-        while (index[i] < letterIndex[i][word[i] - 97].size() && letterIndex[i][word[i] - 97][index[i]] < largest) {
+        while (index[i] < letterIndex[i][colours.letter(i) - 'a'].size() && letterIndex[i][colours.letter(i) - 'a'][index[i]] < largest) {
           index[i]++;
         }
 
-        if (!(index[i] < letterIndex[i][word[i] - 97].size()))
+        if (!(index[i] < letterIndex[i][colours.letter(i) - 'a'].size()))
           return solutions;
 
-        if (letterIndex[i][word[i] - 97][index[i]] > largest) {
-          largest = letterIndex[i][word[i] - 97][index[i]];
+        if (letterIndex[i][colours.letter(i) - 'a'][index[i]] > largest) {
+          largest = letterIndex[i][colours.letter(i) - 'a'][index[i]];
           allLargest = false;
         }
       }
     }
 
     if (allLargest) {
-      if (checkWord(solutionList[largest], word, colours)) {
+      if (colours.check(solutionList[largest])) {
         solutions.emplace_back(solutionList[largest]);
       }
 
@@ -222,50 +181,20 @@ std::vector<std::string> Solver::possibleSolutions(const std::string& word, Lett
 
 Guess Solver::averageSolutions(const std::string& word) {
   std::vector<int> results;
-  LetterColour colours[SIZE];
-  int sum;
   double ret = 0;
-  bool skip = false;
 
-  for (int i = 0; i < SIZE; i++) {
-    colours[i] = GREY;
-  }
-
-  while (colours[SIZE - 1] <= GREEN) {
-    if (!skip) {
-      ret = possibleSolutions(word, colours).size();
-      if (ret > 0)
-        results.emplace_back(ret);
-    }
-
-    skip = false;
-    sum = 0;
-    colours[0]++;
-
-    for (int k = 0; k < SIZE; k++) {
-      if (colours[k] > GREEN && k < SIZE - 1) {
-        colours[k] = GREY;
-        colours[k + 1]++;
-      } else if (colours[k] == YELLOW) {
-        for (int j = 0; j < k; j++) {
-          if (colours[j] == GREY && word[j] == word[k])
-            skip = true;
-        }
-      }
-
-      sum += colours[k];
-    }
-
-    if (sum == 9)
-      skip = true;
+  for (LetterColour colours = word; colours[SIZE - 1] <= GREEN; colours++) {
+    ret = possibleSolutions(colours).size();
+    if (ret > 0)
+      results.emplace_back(ret);
   }
 
   if (ret == 1)
-    ret = 0 - (((double)ret) / results.size());
+    ret = 0 - (static_cast<double>(ret) / results.size());
   else
     ret = 0;
   for (int i : results) 
-    ret += ((double)i) / results.size();
+    ret += static_cast<double>(i) / results.size();
 
   return Guess(word, ret);
 }

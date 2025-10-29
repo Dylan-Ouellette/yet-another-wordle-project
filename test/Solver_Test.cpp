@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <fstream>
 #include <iostream>
 
@@ -23,9 +24,9 @@ class SoverTest : public testing::Test {
   }
 
 
-  void setColours(const std::string& guessWord, LetterColour colours[SIZE]) {
+  void setColours(LetterColour& colours) {
     for (int i = 0; i < SIZE; i++) {
-      if (guessWord[i] == solution[i]) {
+      if (colours.letter(i) == solution[i]) {
         colours[i] = GREEN;
       } else {
         colours[i] = GREY;
@@ -34,7 +35,7 @@ class SoverTest : public testing::Test {
 
     for (int i = 0; i < SIZE; i++) {
       for (int j = 0; j < SIZE; j++) {
-        if (colours[i] != GREEN && colours[j] == GREY && solution[i] == guessWord[j]) {
+        if (colours[i] != GREEN && colours[j] == GREY && solution[i] == colours.letter(j)) {
           colours[j] = YELLOW;
           j = SIZE;
         }
@@ -45,13 +46,13 @@ class SoverTest : public testing::Test {
 
   int run() {
     std::string guessWord = solver.getBestGuess().getWord();
-    LetterColour colours[SIZE];
     int guessNum = 1;
 
     while (guessWord != solution) {
-      setColours(guessWord, colours);
+      LetterColour colours = guessWord;
+      setColours(colours);
 
-      solver.setGuess(guessWord, colours);
+      solver.setGuess(colours);
       guessWord = solver.getBestGuess().getWord();
       guessNum++;
     }

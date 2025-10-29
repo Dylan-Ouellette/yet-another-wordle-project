@@ -6,7 +6,7 @@
 
 
 int main(int argc, char** argv) {
-  Wordle::LetterColour colours[Wordle::SIZE];
+  // Wordle::LetterColour colours[Wordle::SIZE];
 
   auto start = std::chrono::system_clock::now();
   Wordle::Solver solver("../data/combined_wordlist.txt", "../data/shuffled_real_wordles.txt");
@@ -31,6 +31,8 @@ int main(int argc, char** argv) {
     if (word == "x") {
       return 0;
     } else {
+      Wordle::LetterColour colours = word;
+
       for (int i = 0; i < Wordle::SIZE; i++) {
         if (colourInput[i] == 'b') {
           colours[i] = Wordle::GREY;
@@ -42,7 +44,7 @@ int main(int argc, char** argv) {
       }
 
       start = std::chrono::system_clock::now();
-      solver.setGuess(word, colours);
+      solver.setGuess(colours);
       end = std::chrono::system_clock::now();
 
       auto solutions = solver.getPossibleSolutions();
