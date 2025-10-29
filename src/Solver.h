@@ -36,7 +36,7 @@ private:
   
   std::vector<std::string> guessList;
   std::vector<std::string> solutionList;
-  std::vector<int> letterIndex[SIZE][26];
+  std::vector<size_t>letterIndex[SIZE][26];
 
   std::vector<std::string> possibleSolutions(const std::string& word, LetterColour colours[SIZE]);
   Guess averageSolutions(const std::string& word);

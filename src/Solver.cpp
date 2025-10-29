@@ -34,12 +34,12 @@ int importWordList(std::string filepath, std::vector<std::string>& list) {
 }
 
 
-void indexLetters(const std::vector<std::string>& list, std::vector<int> letterIndex[SIZE][26]) {
+void indexLetters(const std::vector<std::string>& list, std::vector<size_t> letterIndex[SIZE][26]) {
   for (int i = 0; i < SIZE; i++)
     for (int j = 0; j < 26; j++)
       letterIndex[i][j].clear();
 
-  for (int i = 0; i < list.size(); i++)
+  for (size_t i = 0; i < list.size(); i++)
     for (int y = 0; y < SIZE; y++)
       letterIndex[y][list[i][y] - 97].emplace_back(i);
 }
@@ -179,9 +179,9 @@ void Solver::setGuess(const std::string& word, LetterColour colours[SIZE]) {
 
 std::vector<std::string> Solver::possibleSolutions(const std::string& word, LetterColour colours[SIZE]) {
   std::vector<std::string> solutions;
-  int largest = 0;
+  size_t largest = 0;
   bool allLargest;
-  int index[SIZE];
+  size_t index[SIZE];
 
   for (int i = 0; i < SIZE; i++)
     index[i] = 0;
