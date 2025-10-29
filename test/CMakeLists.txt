@@ -13,6 +13,12 @@ add_executable(solver-test
   Solver_Test.cpp
 )
 
+target_compile_options(solver-test
+  PRIVATE
+  -O3
+  -Wall
+)
+
 target_link_libraries(solver-test
   GTest::gtest_main
 )

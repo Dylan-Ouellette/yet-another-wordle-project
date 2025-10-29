@@ -14,6 +14,12 @@ add_executable(yet-another-wordle-project.exe
   src/Solver.cpp
 )
 
+target_compile_options(yet-another-wordle-project.exe
+  PRIVATE
+  -O3
+  -Wall
+)
+
 if(BUILD_TESTS)
   add_subdirectory(test)
 endif()
