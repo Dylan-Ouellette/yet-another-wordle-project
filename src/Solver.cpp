@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <fstream>
-#include <future>
 #include <thread>
 
 using namespace Wordle;
@@ -73,6 +72,18 @@ Solver::Solver(const std::vector<std::string>& newGuessList, const std::vector<s
 }
 
 
+void Solver::operator=(const Solver& newSolver) {
+  guessList = newSolver.guessList;
+  solutionList = newSolver.solutionList;
+  bestGuesses = newSolver.bestGuesses;
+  for (int i = 0; i < SIZE; i ++) {
+    for (int j = 0; j < 26; j ++) {
+      letterIndex[i][j] = newSolver.letterIndex[i][j];
+    }
+  }
+}
+
+
 const std::vector<std::string>& Solver::getPossibleSolutions() {
   return solutionList;
 }
@@ -92,7 +103,7 @@ void Solver::setGuess(const LetterColour& colours) {
   solutionList = possibleSolutions(colours);
   indexLetters(solutionList, letterIndex);
 
-  std::vector<std::future<Guess>> threadFutures;
+  std::vector<std::thread> threads;
   auto numThreads = std::thread::hardware_concurrency();
   Guess ret;
 
@@ -100,39 +111,76 @@ void Solver::setGuess(const LetterColour& colours) {
     numThreads = THREADS;
   }
 
-  numThreads = numThreads * 4;
+  size_t threadWordNum = guessList.size() / numThreads;
+  threads.emplace_back(std::thread(&Wordle::Solver::solutionsThread, this, 0, threadWordNum + guessList.size() % numThreads));
 
-  using namespace std::chrono_literals;
+  for (unsigned int i = 1; i < numThreads; i++) {
+    threads.emplace_back(std::thread(&Wordle::Solver::solutionsThread, this, threadWordNum * i, threadWordNum * (i + 1)));
+  }
 
-  auto nextWord = guessList.begin();
-  while (nextWord != guessList.end() || threadFutures.size() > 0) {
-    while (threadFutures.size() < numThreads && nextWord != guessList.end()) {
-      threadFutures.emplace_back(std::async(std::launch::async, &Solver::averageSolutions, this, *nextWord.base()));
-      nextWord++;
-    }
+  for (unsigned int i = 0; i < numThreads; i++) {
+    threads[i].join();
+  }
+}
 
-    auto i = threadFutures.begin();
-    while (i != threadFutures.end()) {
-      if (i.base()->wait_for(0ms) == std::future_status::ready) {
-        ret = i.base()->get();
 
-        for (int k = 0; k < 5; k++) {
-          if (ret < bestGuesses[k]) {
-            for (int j = 4; j > k; j--) {
-              bestGuesses[j] = bestGuesses[j - 1];
-            }
+void Solver::solutionsThread(size_t start, size_t end) {
+  Guess best[5];
 
-            bestGuesses[k] = ret;
-            k = 5;
-          }
+  for (size_t i = start; i < end; i++) {
+    Guess ret = averageSolutions(guessList[i]);
+
+    for (int j = 0; j < 5; j++) {
+      if (ret < best[j]) {
+        for (int k = 4; k > j; k--) {
+          best[k] = best[k - 1];
         }
-        
-        i = threadFutures.erase(i);
-      } else {
-        i++;
+
+        best[j] = ret;
+        j = 5;
       }
     }
   }
+
+  bestMutex.lock();
+
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 5; j++) {
+      if (best[i] < bestGuesses[j]) {
+        for (int k = 4; k > j; k--) {
+          bestGuesses[k] = bestGuesses[k - 1];
+        }
+
+        bestGuesses[j] = best[i];
+        j = 5;
+      } else if (j == 4) {
+        i = 5;
+      }
+    }
+  }
+
+  bestMutex.unlock();
+}
+
+
+Guess Solver::averageSolutions(const std::string& word) {
+  std::vector<int> results;
+  double ret = 0;
+
+  for (LetterColour colours = word; colours[SIZE - 1] <= GREEN; colours++) {
+    ret = possibleSolutions(colours).size();
+    if (ret > 0)
+      results.emplace_back(ret);
+  }
+
+  if (ret == 1)
+    ret = 0 - (static_cast<double>(ret) / results.size());
+  else
+    ret = 0;
+  for (int i : results) 
+    ret += static_cast<double>(i) / results.size();
+
+  return Guess(word, ret);
 }
 
 
@@ -176,25 +224,4 @@ std::vector<std::string> Solver::possibleSolutions(const LetterColour& colours) 
       }
     }
   }
-}
-
-
-Guess Solver::averageSolutions(const std::string& word) {
-  std::vector<int> results;
-  double ret = 0;
-
-  for (LetterColour colours = word; colours[SIZE - 1] <= GREEN; colours++) {
-    ret = possibleSolutions(colours).size();
-    if (ret > 0)
-      results.emplace_back(ret);
-  }
-
-  if (ret == 1)
-    ret = 0 - (static_cast<double>(ret) / results.size());
-  else
-    ret = 0;
-  for (int i : results) 
-    ret += static_cast<double>(i) / results.size();
-
-  return Guess(word, ret);
 }

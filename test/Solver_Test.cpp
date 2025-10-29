@@ -3,9 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include <array>
 #include <fstream>
-#include <iostream>
 
 using namespace Wordle;
 
@@ -67,13 +65,13 @@ class SoverTest : public testing::Test {
 };
 
 
-TEST_F(SoverTest, DoubleLetterTest) { // 3.4s
+TEST_F(SoverTest, DoubleLetterTest) { // 0.8s
   solution = "guppy";
   EXPECT_EQ(run(), 4);
 }
 
 
-TEST_F(SoverTest, DifficultWords) { // 3.85484 in 270s
+TEST_F(SoverTest, DifficultWords) { // 3.85484 in 53.5s
   std::fstream file("../data/difficult_wordlist.txt");
 
   ASSERT_TRUE(file.is_open());
