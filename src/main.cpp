@@ -6,8 +6,6 @@
 
 
 int main(int argc, char** argv) {
-  // Wordle::LetterColour colours[Wordle::SIZE];
-
   auto start = std::chrono::system_clock::now();
   Wordle::Solver solver("../data/combined_wordlist.txt", "../data/shuffled_real_wordles.txt");
   auto end = std::chrono::system_clock::now();

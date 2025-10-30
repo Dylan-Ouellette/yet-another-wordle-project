@@ -13,7 +13,8 @@ private:
   double average;
 
 public:
-  Guess(const std::string& word = "", double averageResult = 999999) : w(word), average(averageResult) {}
+  Guess(const std::string& word = "", double averageResult = std::numeric_limits<double>::max()) : 
+      w(word), average(averageResult) {}
 
   friend inline bool operator==(const Guess& l, const Guess& r) {
     return l.average == r.average;

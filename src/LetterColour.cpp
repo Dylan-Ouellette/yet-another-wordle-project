@@ -15,7 +15,7 @@ LetterColour::LetterColour(const std::string& word, const std::array<Colour, SIZ
 }
 
 
-inline void LetterColour::operator++() {
+void LetterColour::operator++() {
   bool valid = false;
 
   while(!valid) {

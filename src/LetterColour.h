@@ -17,7 +17,7 @@ protected:
 public:
   LetterColour(const std::string& word, const std::array<Colour, SIZE>& colours = {GREY});
 
-  inline void operator++();
+  void operator++();
   void operator++(int);
   char letter(size_t index) const;
   Colour& operator[](size_t index);
