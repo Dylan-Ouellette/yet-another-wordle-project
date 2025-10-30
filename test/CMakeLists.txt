@@ -9,8 +9,8 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 add_executable(solver-test
-  ../src/Solver.cpp
-  ../src/LetterColour.cpp
+  ${CMAKE_SOURCE_DIR}/src/Solver.cpp
+  ${CMAKE_SOURCE_DIR}/src/LetterColour.cpp
   Solver_Test.cpp
 )
 
