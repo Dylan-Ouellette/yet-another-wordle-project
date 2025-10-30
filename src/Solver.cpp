@@ -33,23 +33,10 @@ int importWordList(std::string filepath, std::vector<std::string>& list) {
 }
 
 
-void indexLetters(const std::vector<std::string>& list, std::vector<size_t> letterIndex[SIZE][26]) {
-  for (int i = 0; i < SIZE; i++)
-    for (int j = 0; j < 26; j++)
-      letterIndex[i][j].clear();
-
-  for (size_t i = 0; i < list.size(); i++)
-    for (int y = 0; y < SIZE; y++)
-      letterIndex[y][list[i][y] - 97].emplace_back(i);
-}
-
-
 Solver::Solver(const std::string& guessListPath, const std::string& solutionListPath) {
   importWordList(guessListPath, guessList);
   importWordList(solutionListPath, solutionList);
   
-  indexLetters(solutionList, letterIndex);
-
   bestGuesses[0] = Guess("trace", solutionList.size());
   bestGuesses[1] = Guess("crate", solutionList.size());
   bestGuesses[2] = Guess("salet", solutionList.size());
@@ -61,9 +48,6 @@ Solver::Solver(const std::string& guessListPath, const std::string& solutionList
 Solver::Solver(const std::vector<std::string>& newGuessList, const std::vector<std::string>& newSolutionList) : 
     guessList(newGuessList),
     solutionList(newSolutionList) {
-
-  indexLetters(solutionList, letterIndex);
-
   bestGuesses[0] = Guess("trace", solutionList.size());
   bestGuesses[1] = Guess("crate", solutionList.size());
   bestGuesses[2] = Guess("salet", solutionList.size());
@@ -73,14 +57,9 @@ Solver::Solver(const std::vector<std::string>& newGuessList, const std::vector<s
 
 
 void Solver::operator=(const Solver& newSolver) {
+  bestGuesses = newSolver.bestGuesses;
   guessList = newSolver.guessList;
   solutionList = newSolver.solutionList;
-  bestGuesses = newSolver.bestGuesses;
-  for (int i = 0; i < SIZE; i ++) {
-    for (int j = 0; j < 26; j ++) {
-      letterIndex[i][j] = newSolver.letterIndex[i][j];
-    }
-  }
 }
 
 
@@ -100,8 +79,7 @@ Guess Solver::getBestGuess(int index) {
 
 
 void Solver::setGuess(const LetterColour& colours) {
-  solutionList = possibleSolutions(colours);
-  indexLetters(solutionList, letterIndex);
+  solutionList = possibleSolutions(colours, solutionList);
 
   std::vector<std::thread> threads;
   auto numThreads = std::thread::hardware_concurrency();
@@ -165,11 +143,12 @@ void Solver::solutionsThread(size_t start, size_t end) {
 
 
 Guess Solver::averageSolutions(const std::string& word) {
+  std::vector<std::string> possibles = solutionList;
   std::vector<int> results;
   double ret = 0;
 
   for (LetterColour colours = word; colours[SIZE - 1] <= GREEN; colours++) {
-    ret = possibleSolutions(colours).size();
+    ret = possibleSolutions(colours, possibles).size();
     if (ret > 0)
       results.emplace_back(ret);
   }
@@ -185,44 +164,18 @@ Guess Solver::averageSolutions(const std::string& word) {
 }
 
 
-std::vector<std::string> Solver::possibleSolutions(const LetterColour& colours) {
+std::vector<std::string> Solver::possibleSolutions(const LetterColour& colours, std::vector<std::string>& possibles) {
   std::vector<std::string> solutions;
-  size_t largest = 0;
-  bool allLargest;
-  size_t index[SIZE];
+  auto i = possibles.begin();
 
-  for (int i = 0; i < SIZE; i++)
-    index[i] = 0;
-
-  while (true) {
-    allLargest = true;
-
-    for (int i = 0; i < SIZE; i++) {
-      if (colours[i] == GREEN) {
-        while (index[i] < letterIndex[i][colours.letter(i) - 'a'].size() && letterIndex[i][colours.letter(i) - 'a'][index[i]] < largest) {
-          index[i]++;
-        }
-
-        if (!(index[i] < letterIndex[i][colours.letter(i) - 'a'].size()))
-          return solutions;
-
-        if (letterIndex[i][colours.letter(i) - 'a'][index[i]] > largest) {
-          largest = letterIndex[i][colours.letter(i) - 'a'][index[i]];
-          allLargest = false;
-        }
-      }
-    }
-
-    if (allLargest) {
-      if (colours.check(solutionList[largest])) {
-        solutions.emplace_back(solutionList[largest]);
-      }
-
-      largest++;
-
-      if (largest >= solutionList.size()) {
-        return solutions;
-      }
+  while (i < possibles.end()) {
+    if (colours.check(*i)) {
+      solutions.emplace_back(*i);
+      i = possibles.erase(i);
+    } else {
+      i++;
     }
   }
+
+  return solutions;
 }

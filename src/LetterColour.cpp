@@ -69,18 +69,17 @@ void LetterColour::setColour(const std::array<Colour, SIZE>& newColours) {
 
 
 bool LetterColour::check(const std::string& checkWord) const {  
-  bool used[SIZE];
-  for (int i = 0; i < SIZE; i ++)
-    used[i] = false;
-  bool found;
+  bool used[SIZE] = {false};
 
   for (int i = 0; i < SIZE; i++) {
-    if (colours[i] == YELLOW) {
+    if (colours[i] == GREEN && word[i] != checkWord[i]) {
+      return false;
+    } else if (colours[i] == YELLOW) {
       if (checkWord[i] == word[i]) {
         return false;
       }
 
-      found = false;
+      bool found = false;
 
       for (int j = 0; !found && j < SIZE; j++) {
         if (!used[j] && checkWord[j] == word[i] && checkWord[j] != word[j]) {

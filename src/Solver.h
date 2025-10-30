@@ -20,9 +20,8 @@ private:
   
   std::vector<std::string> guessList;
   std::vector<std::string> solutionList;
-  std::vector<size_t>letterIndex[SIZE][26];
 
-  std::vector<std::string> possibleSolutions(const LetterColour& colours);
+  std::vector<std::string> possibleSolutions(const LetterColour& colours, std::vector<std::string>& possibles);
   Guess averageSolutions(const std::string& word);
   void solutionsThread(size_t start, size_t end);
 

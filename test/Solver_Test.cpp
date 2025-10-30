@@ -71,7 +71,7 @@ TEST_F(SoverTest, DoubleLetterTest) { // 0.8s
 }
 
 
-TEST_F(SoverTest, DifficultWords) { // 3.85484 in 39.8s
+TEST_F(SoverTest, DifficultWords) { // 3.85484 in 35.2s
   std::fstream file("../data/difficult_wordlist.txt");
 
   ASSERT_TRUE(file.is_open());
