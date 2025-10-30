@@ -114,10 +114,10 @@ void Solver::setGuess(const LetterColour& colours) {
   size_t threadWordNum = guessList.size() / numThreads;
 
   for (unsigned int i = 0; i < numThreads - 1; i++) {
-    threads.emplace_back(std::thread(&solutionsThread, this, threadWordNum * i, threadWordNum * (i + 1)));
+    threads.emplace_back(std::thread(&Solver::solutionsThread, this, threadWordNum * i, threadWordNum * (i + 1)));
   }
 
-  threads.emplace_back(std::thread(&solutionsThread, this, threadWordNum * (numThreads - 1), guessList.size()));
+  threads.emplace_back(std::thread(&Solver::solutionsThread, this, threadWordNum * (numThreads - 1), guessList.size()));
 
   for (unsigned int i = 0; i < numThreads; i++) {
     threads[i].join();
