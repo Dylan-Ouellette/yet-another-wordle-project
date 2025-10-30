@@ -18,6 +18,7 @@ target_compile_options(solver-test
   PRIVATE
   -O3
   -Wall
+  -flto
 )
 
 target_link_libraries(solver-test

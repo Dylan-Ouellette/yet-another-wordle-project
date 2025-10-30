@@ -19,6 +19,7 @@ target_compile_options(yet-another-wordle-project.exe
   PRIVATE
   -O3
   -Wall
+  -flto
 )
 
 if(BUILD_TESTS)
