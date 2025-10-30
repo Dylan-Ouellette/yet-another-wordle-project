@@ -112,11 +112,12 @@ void Solver::setGuess(const LetterColour& colours) {
   }
 
   size_t threadWordNum = guessList.size() / numThreads;
-  threads.emplace_back(std::thread(&Wordle::Solver::solutionsThread, this, 0, threadWordNum + guessList.size() % numThreads));
 
-  for (unsigned int i = 1; i < numThreads; i++) {
-    threads.emplace_back(std::thread(&Wordle::Solver::solutionsThread, this, threadWordNum * i, threadWordNum * (i + 1)));
+  for (unsigned int i = 0; i < numThreads - 1; i++) {
+    threads.emplace_back(std::thread(&solutionsThread, this, threadWordNum * i, threadWordNum * (i + 1)));
   }
+
+  threads.emplace_back(std::thread(&solutionsThread, this, threadWordNum * (numThreads - 1), guessList.size()));
 
   for (unsigned int i = 0; i < numThreads; i++) {
     threads[i].join();
