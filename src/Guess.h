@@ -13,8 +13,16 @@ private:
   double average;
 
 public:
-  Guess(const std::string& word = "", double averageResult = std::numeric_limits<double>::max()) : 
-      w(word), average(averageResult) {}
+  Guess(const std::string& word = "", double averageResult = std::numeric_limits<double>::max())
+  : w(word), average(averageResult) {}
+
+  static Guess readGuess(const std::string& str) {
+    return Guess(str.substr(0, 5), stod(str.substr(8)));
+  }
+
+  friend inline std::ostream& operator<<(std::ostream& l, const Guess& r) {
+    return  l << r.w << std::string(" - ") << std::to_string(r.average);
+  }
 
   friend inline bool operator==(const Guess& l, const Guess& r) {
     return l.average == r.average;
@@ -40,11 +48,11 @@ public:
     return !(l < r);
   }
 
-  const std::string& getWord() {
+  const std::string& getWord() const {
     return w;
   }
 
-  double getAverageResult() {
+  double getAverageResult() const {
     return average;
   }
 

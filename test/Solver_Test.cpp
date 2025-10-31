@@ -12,11 +12,13 @@ class SoverTest : public testing::Test {
   protected:
   Solver solver;
   std::string solution;
+  std::array<Guess, BEST_LIST_SIZE> bestGuessCopy;
   std::vector<std::string> guessListCopy;
   std::vector<std::string> solutionListCopy;
 
 
-  SoverTest() : solver("../data/combined_wordlist.txt", "../data/shuffled_real_wordles.txt") {
+  SoverTest() {
+    bestGuessCopy = solver.getBestGuess();
     guessListCopy = solver.getGuessWords();
     solutionListCopy = solver.getPossibleSolutions();
   }
@@ -43,7 +45,7 @@ class SoverTest : public testing::Test {
 
 
   int run() {
-    std::string guessWord = solver.getBestGuess().getWord();
+    std::string guessWord = solver.getBestGuess()[0].getWord();
     int guessNum = 1;
 
     while (guessWord != solution) {
@@ -51,7 +53,7 @@ class SoverTest : public testing::Test {
       setColours(colours);
 
       solver.setGuess(colours);
-      guessWord = solver.getBestGuess().getWord();
+      guessWord = solver.getBestGuess()[0].getWord();
       guessNum++;
     }
 
@@ -60,7 +62,7 @@ class SoverTest : public testing::Test {
 
 
   void reset() {
-    solver = Solver(guessListCopy, solutionListCopy);
+    solver = Solver(guessListCopy, solutionListCopy, bestGuessCopy);
   }
 };
 

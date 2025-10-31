@@ -8,7 +8,7 @@
 using namespace Wordle;
 
 
-int importWordList(std::string filepath, std::vector<std::string>& list) {
+int importWordList(const std::string& filepath, std::vector<std::string>& list) {
   std::fstream file(filepath);
 
   if (!file.is_open()) {
@@ -33,27 +33,58 @@ int importWordList(std::string filepath, std::vector<std::string>& list) {
 }
 
 
-Solver::Solver(const std::string& guessListPath, const std::string& solutionListPath) {
+int writeBestList(const std::array<Guess, BEST_LIST_SIZE>& guesses,
+                  const std::string& filepath = "../data/best_starting_guesses") {
+  std::fstream file(filepath);
+
+  if (!file.is_open()) {
+    return 1;
+  }
+
+  for (int i = 0; i < BEST_LIST_SIZE; i++) {
+    file << guesses[i] << std::endl;
+  }
+
+  file.close();
+
+  return 0;
+}
+
+
+Solver::Solver() : bestGuesses({Guess("")}) {
+  importWordList("../data/combined_wordlist.txt", guessList);
+  importWordList("../data/shuffled_real_wordles.txt", solutionList);
+
+  std::fstream file("../data/best_starting_guesses.txt");
+  std::string str;
+
+  for (int i = 0; i < BEST_LIST_SIZE && getline(file, str); i++) {
+    bestGuesses[i] = Guess::readGuess(str);
+  }
+
+  file.close();
+}
+
+
+Solver::Solver(const std::string& guessListPath, const std::string& solutionListPath) : bestGuesses({Guess("")}) {
   importWordList(guessListPath, guessList);
   importWordList(solutionListPath, solutionList);
   
-  bestGuesses[0] = Guess("trace", solutionList.size());
-  bestGuesses[1] = Guess("crate", solutionList.size());
-  bestGuesses[2] = Guess("salet", solutionList.size());
-  bestGuesses[3] = Guess("slate", solutionList.size());
-  bestGuesses[4] = Guess("tarse", solutionList.size());
+  findBest();
 }
 
 
-Solver::Solver(const std::vector<std::string>& newGuessList, const std::vector<std::string>& newSolutionList) : 
-    guessList(newGuessList),
-    solutionList(newSolutionList) {
-  bestGuesses[0] = Guess("trace", solutionList.size());
-  bestGuesses[1] = Guess("crate", solutionList.size());
-  bestGuesses[2] = Guess("salet", solutionList.size());
-  bestGuesses[3] = Guess("slate", solutionList.size());
-  bestGuesses[4] = Guess("tarse", solutionList.size());
+Solver::Solver(const std::vector<std::string>& newGuessList, const std::vector<std::string>& newSolutionList)
+  : bestGuesses({Guess("")}), guessList(newGuessList), solutionList(newSolutionList) {
+  findBest();
 }
+
+
+Solver::Solver(
+  const std::vector<std::string>& newGuessList, 
+  const std::vector<std::string>& newSolutionList, 
+  const std::array<Guess, BEST_LIST_SIZE>& newBestGuesses
+) : bestGuesses(newBestGuesses), guessList(newGuessList), solutionList(newSolutionList) {}
 
 
 void Solver::operator=(const Solver& newSolver) {
@@ -63,24 +94,28 @@ void Solver::operator=(const Solver& newSolver) {
 }
 
 
-const std::vector<std::string>& Solver::getPossibleSolutions() {
+const std::vector<std::string>& Solver::getPossibleSolutions() const {
   return solutionList;
 }
 
 
-const std::vector<std::string>& Solver::getGuessWords() {
+const std::vector<std::string>& Solver::getGuessWords() const {
   return guessList;
 }
 
 
-Guess Solver::getBestGuess(int index) {
-  return bestGuesses[index];
+const std::array<Guess, BEST_LIST_SIZE>& Solver::getBestGuess() const {
+  return bestGuesses;
 }
 
 
 void Solver::setGuess(const LetterColour& colours) {
   solutionList = possibleSolutions(colours, solutionList);
+  findBest();
+}
 
+
+void Solver::findBest() {
   std::vector<std::thread> threads;
   auto numThreads = std::thread::hardware_concurrency();
   Guess ret;
@@ -104,41 +139,41 @@ void Solver::setGuess(const LetterColour& colours) {
 
 
 void Solver::solutionsThread(size_t start, size_t end) {
-  Guess best[5];
+  Guess best[BEST_LIST_SIZE];
 
   for (size_t i = start; i < end; i++) {
     Guess ret = averageSolutions(guessList[i]);
 
-    for (int j = 0; j < 5; j++) {
+    for (int j = 0; j < BEST_LIST_SIZE; j++) {
       if (ret < best[j]) {
-        for (int k = 4; k > j; k--) {
+        for (int k = BEST_LIST_SIZE - 1; k > j; k--) {
           best[k] = best[k - 1];
         }
 
         best[j] = ret;
-        j = 5;
+        j = BEST_LIST_SIZE;
       }
     }
   }
 
-  bestMutex.lock();
+  bestGuessesMutex.lock();
 
-  for (int i = 0; i < 5; i++) {
-    for (int j = 0; j < 5; j++) {
+  for (int i = 0; i < BEST_LIST_SIZE; i++) {
+    for (int j = 0; j < BEST_LIST_SIZE; j++) {
       if (best[i] < bestGuesses[j]) {
-        for (int k = 4; k > j; k--) {
+        for (int k = BEST_LIST_SIZE - 1; k > j; k--) {
           bestGuesses[k] = bestGuesses[k - 1];
         }
 
         bestGuesses[j] = best[i];
-        j = 5;
-      } else if (j == 4) {
-        i = 5;
+        j = BEST_LIST_SIZE;
+      } else if (j == BEST_LIST_SIZE - 1) {
+        i = BEST_LIST_SIZE;
       }
     }
   }
 
-  bestMutex.unlock();
+  bestGuessesMutex.unlock();
 }
 
 

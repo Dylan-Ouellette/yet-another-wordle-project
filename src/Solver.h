@@ -15,8 +15,8 @@ namespace Wordle {
 class Solver {
 
 private:
-  std::mutex bestMutex;
-  std::array<Guess, 5> bestGuesses;
+  std::mutex bestGuessesMutex;
+  std::array<Guess, BEST_LIST_SIZE> bestGuesses;
   
   std::vector<std::string> guessList;
   std::vector<std::string> solutionList;
@@ -24,18 +24,25 @@ private:
   std::vector<std::string> possibleSolutions(const LetterColour& colours, std::vector<std::string>& possibles);
   Guess averageSolutions(const std::string& word);
   void solutionsThread(size_t start, size_t end);
+  void findBest();
 
 public:
+  Solver();
   Solver(const std::string& guessListPath, const std::string& solutionListPath);
   Solver(const std::vector<std::string>& newGuessList, const std::vector<std::string>& newSolutionList);
+  Solver(
+    const std::vector<std::string>& newGuessList,
+    const std::vector<std::string>& newSolutionList,
+    const std::array<Guess, BEST_LIST_SIZE>& newBestGuesses
+  );
 
   void operator=(const Solver& newSolver);
 
-  Guess getBestGuess(int index = 0);
+  const std::array<Guess, BEST_LIST_SIZE>& getBestGuess() const;
   void setGuess(const LetterColour& colours);
 
-  const std::vector<std::string>& getPossibleSolutions();
-  const std::vector<std::string>& getGuessWords();
+  const std::vector<std::string>& getPossibleSolutions() const;
+  const std::vector<std::string>& getGuessWords() const;
 }; // Solver
 
 } // Wordle
