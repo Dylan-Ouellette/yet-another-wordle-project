@@ -24,7 +24,7 @@ class SoverTest : public testing::Test {
   }
 
 
-  void setColours(LetterColour& colours) {
+  void setColours(WordColour& colours) {
     for (int i = 0; i < SIZE; i++) {
       if (colours.letter(i) == solution[i]) {
         colours[i] = GREEN;
@@ -49,7 +49,7 @@ class SoverTest : public testing::Test {
     int guessNum = 1;
 
     while (guessWord != solution) {
-      LetterColour colours = guessWord;
+      WordColour colours = guessWord;
       setColours(colours);
 
       solver.setGuess(colours);

@@ -10,7 +10,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(solver-test
   ${CMAKE_SOURCE_DIR}/src/Solver.cpp
-  ${CMAKE_SOURCE_DIR}/src/LetterColour.cpp
+  ${CMAKE_SOURCE_DIR}/src/WordColour.cpp
   Solver_Test.cpp
 )
 

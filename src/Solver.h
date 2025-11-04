@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "Guess.h"
-#include "LetterColour.h"
+#include "WordColour.h"
 #include "Wordle.h"
 
 namespace Wordle {
@@ -21,7 +21,7 @@ private:
   std::vector<std::string> guessList;
   std::vector<std::string> solutionList;
 
-  std::vector<std::string> possibleSolutions(const LetterColour& colours, std::vector<std::string>& possibles);
+  std::vector<std::string> possibleSolutions(const WordColour& colours, std::vector<std::string>& possibles);
   Guess averageSolutions(const std::string& word);
   void solutionsThread(size_t start, size_t end);
   void findBest();
@@ -39,7 +39,7 @@ public:
   void operator=(const Solver& newSolver);
 
   const std::array<Guess, BEST_LIST_SIZE>& getBestGuess() const;
-  void setGuess(const LetterColour& colours);
+  void setGuess(const WordColour& colours);
 
   const std::vector<std::string>& getPossibleSolutions() const;
   const std::vector<std::string>& getGuessWords() const;

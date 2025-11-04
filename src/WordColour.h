@@ -1,5 +1,5 @@
-#ifndef LETTERCOLOUR_H
-  #define LETTERCOLOUR_H
+#ifndef WordColour_H
+  #define WordColour_H
 
 #include <array>
 #include <string>
@@ -8,14 +8,14 @@
 
 namespace Wordle {
 
-class LetterColour {
+class WordColour {
 
 protected:
   std::string word;
   std::array<Colour, SIZE> colours;
 
 public:
-  LetterColour(const std::string& word, const std::array<Colour, SIZE>& colours = {GREY});
+  WordColour(const std::string& word, const std::array<Colour, SIZE>& colours = {GREY});
 
   void operator++();
   void operator++(int);
@@ -25,8 +25,8 @@ public:
 
   void setColour(const std::array<Colour, SIZE>& newColours);
   bool check(const std::string& checkWord) const;
-}; // LetterColour
+}; // WordColour
 
 } // Wordle
 
-#endif // LETTERCOLOUR_H
+#endif // WordColour_H

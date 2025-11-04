@@ -1,5 +1,5 @@
 
-#include "LetterColour.h"
+#include "WordColour.h"
 
 using namespace Wordle;
 
@@ -10,12 +10,12 @@ inline Colour operator++(Colour& colour, int) {
 }
 
 
-LetterColour::LetterColour(const std::string& word, const std::array<Colour, SIZE>& colours) : 
+WordColour::WordColour(const std::string& word, const std::array<Colour, SIZE>& colours) : 
     word(word), colours(colours) {
 }
 
 
-void LetterColour::operator++() {
+void WordColour::operator++() {
   bool valid = false;
 
   while(!valid) {
@@ -43,32 +43,32 @@ void LetterColour::operator++() {
 }
 
 
-void LetterColour::operator++(int) {
+void WordColour::operator++(int) {
   operator++();
 }
 
 
-char LetterColour::letter(size_t index) const {
+char WordColour::letter(size_t index) const {
   return word[index];
 }
 
 
-Colour& LetterColour::operator[](size_t index) {
+Colour& WordColour::operator[](size_t index) {
   return colours[index];
 }
 
 
-const Colour& LetterColour::operator[](size_t index) const {
+const Colour& WordColour::operator[](size_t index) const {
   return colours[index];
 }
 
 
-void LetterColour::setColour(const std::array<Colour, SIZE>& newColours) {
+void WordColour::setColour(const std::array<Colour, SIZE>& newColours) {
   colours = newColours;
 }
 
 
-bool LetterColour::check(const std::string& checkWord) const {  
+bool WordColour::check(const std::string& checkWord) const {  
   bool used[SIZE] = {false};
 
   for (int i = 0; i < SIZE; i++) {

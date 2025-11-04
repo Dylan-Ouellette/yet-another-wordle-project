@@ -109,7 +109,7 @@ const std::array<Guess, BEST_LIST_SIZE>& Solver::getBestGuess() const {
 }
 
 
-void Solver::setGuess(const LetterColour& colours) {
+void Solver::setGuess(const WordColour& colours) {
   solutionList = possibleSolutions(colours, solutionList);
   findBest();
 }
@@ -182,7 +182,7 @@ Guess Solver::averageSolutions(const std::string& word) {
   std::vector<int> results;
   double ret = 0;
 
-  for (LetterColour colours = word; colours[SIZE - 1] <= GREEN; colours++) {
+  for (WordColour colours = word; colours[SIZE - 1] <= GREEN; colours++) {
     ret = possibleSolutions(colours, possibles).size();
     if (ret > 0)
       results.emplace_back(ret);
@@ -199,7 +199,7 @@ Guess Solver::averageSolutions(const std::string& word) {
 }
 
 
-std::vector<std::string> Solver::possibleSolutions(const LetterColour& colours, std::vector<std::string>& possibles) {
+std::vector<std::string> Solver::possibleSolutions(const WordColour& colours, std::vector<std::string>& possibles) {
   std::vector<std::string> solutions;
   auto i = possibles.begin();
 

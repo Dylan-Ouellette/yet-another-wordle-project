@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
       return 0;
     }
 
-    Wordle::LetterColour colours = word;
+    Wordle::WordColour colours = word;
 
     for (int i = 0; i < Wordle::SIZE; i++) {
       if (colourInput[i] == 'b') {
