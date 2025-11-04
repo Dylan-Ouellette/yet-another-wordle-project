@@ -29,6 +29,7 @@ int main(int argc, char** argv) {
       for (auto w : solutions) {
         std::cout << w << std::endl;
       }
+      std::cout << std::endl;
     }
 
     std::cout << "Best Guesses:" << std::endl;
