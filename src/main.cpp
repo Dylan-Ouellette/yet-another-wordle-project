@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
     std::cin >> colourInput;
     std::cout << std::endl;
 
-    if (word == "x") {
+    if (colourInput == "x") {
       return 0;
     }
 
