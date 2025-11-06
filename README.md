@@ -1,7 +1,7 @@
 # yet-another-wordle-project
 It has become a cliche to make a Wordle based project, but as it turns out that is because it's just that much fun. This project focuses on solving Wordle puzzles by finding the word with the lowest average number of possible solution words.
 
-### How to Build
+## How to Build
 CMake 3.16 or newer is required.
 ```
 $ mkdir build
@@ -10,7 +10,7 @@ $ cmake ..
 $ make
 ```
 
-### How to Use
+## How to Use
 Run the executable `yet-another-wordle-project.exe`
 
 A list of top guesses and their average results will be presented.
@@ -23,7 +23,7 @@ Colours:  bbgyg
 
 Repeat until the solution is found or enter just `x` as a Guess to exit.
 
-### Project TODO's
+## Project TODO's
 - add Docker containers.
 - add UI using Qt.
 - add linter.
@@ -31,3 +31,4 @@ Repeat until the solution is found or enter just `x` as a Guess to exit.
 - add more tests.
 - add option for recursive depth.
 - add input checking and error handling.
+- add CUDA compatibility.
